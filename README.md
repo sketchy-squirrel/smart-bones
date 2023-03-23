@@ -39,4 +39,4 @@ Smart Bones is an add-on for Blender that automates the process of adding action
 The add-on is compatible with Blender 2.80 and newer versions.
 
 ## Credits
-Sketchy Squirrel - Joel Graham
+[Sketchy Squirrel](https://sketchysquirrel.com) - Joel Graham
