@@ -3,7 +3,7 @@ Smart Bones is an add-on for Blender that automates the process of adding action
 
 ## Installation
 1. Download the SmartBones.py file from the [Github repository](https://github.com/sketchy-squirrel/smart-bones).
-2. Open Blender and go to Edit > Preferences > Add-ons.
+2. Open Blender and go to __'Edit > Preferences > Add-ons'__.
 3. Click on Install... and select the downloaded SmartBones.py file.
 4. Make sure that the checkmark next to the add-on is enabled.
 5. Click on Save Preferences.
