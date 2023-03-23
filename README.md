@@ -1,5 +1,11 @@
 ![Smart-Bones for Blender, subtitle: Action Constraints Made Easy](assets/smart-bones-banner.png)
+
 Smart Bones is an add-on for Blender that automates the process of adding action constraints to keyed bones within a selected action.
+
+## Included Files
+__Python script / addon :__ [blender-smart-bones.py](/blender-smart-bones.py)
+__Character demonstration 01:__ [01-character-blue.blend](/assets/01-character-blue.blend)
+__Character demonstration 02:__ [02-character-orange.blend](/assets/02-character-orange.blend)
 
 ## Installation
 1. Download the SmartBones.py file from the [Github repository](https://github.com/sketchy-squirrel/smart-bones).
