@@ -10,6 +10,7 @@ __Character demonstration 01:__ [01-character-blue.blend](/assets/01-character-b
 __Character demonstration 02:__ [02-character-orange.blend](/assets/02-character-orange.blend)
 
 
+
 ## Installation
 1. Download the SmartBones.py file from the [Github repository](https://github.com/sketchy-squirrel/smart-bones).
 2. Open Blender and go to __'Edit > Preferences > Add-ons'__.
