@@ -183,10 +183,6 @@ class OT_AddSmartBone(bpy.types.Operator):
               bones_in_current_obj.append(i.name)
             
             for action_bone in action_bones:
-                
-                    #bone = bpy.data.objects[ctrl_armature_name].pose.bones[control_name].bone
-                    #current_object.data.bones.active = bone    
-                    #bone.select = True 
                     
                     #Prevents trying to add constraint to bone in another armature
                     if action_bone in bones_in_current_obj:
@@ -283,6 +279,8 @@ class OT_DeleteSmartBone(bpy.types.Operator):
                 
                 for i in range(0,32):
                     armature_data.layers[i] = current_selection[i]
+            
+            bpy.ops.object.mode_set(mode='POSE')
             
             return {'FINISHED'}
 
