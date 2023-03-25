@@ -5,9 +5,9 @@ Smart Bones is an add-on for Blender that automates the process of adding action
 ## Included Files
 __Python script / addon :__ [blender-smart-bones.py](/blender-smart-bones.py)
 
-__Character demonstration 01:__ [01-character-blue.blend](/assets/01-character-blue.blend)
+__Character demonstration 01:__ [Character-blue.blend](/assets/01-character-blue.blend)
 
-__Character demonstration 02:__ [02-character-orange.blend](/assets/02-character-orange.blend)
+__Character demonstration 02:__ [Character-orange.blend](/assets/02-character-orange.blend)
 
 
 
