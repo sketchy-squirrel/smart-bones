@@ -2,11 +2,7 @@ bl_info = {
     "name": "Smart Bones",
     "description": "Automating adds action constraint to keyed bones within a selected action",
     "author": "Sketchy Squirrel",
-<<<<<<< HEAD
-    "version": (0, 1, 2),
-=======
-    "version": (0, 1, 1),
->>>>>>> 296112cb86b4e582880a5b1c26081d5ea5298258
+    "version": (0, 1, 0),
     "blender": (2, 80, 0),
     "location": "3D View > Smart Bones",
     "warning": "", # used for warning icon and text in addons panel
