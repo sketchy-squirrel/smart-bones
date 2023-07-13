@@ -9,7 +9,7 @@ __Character demonstration 01:__ [Character-blue.blend](/assets/01-character-blue
 
 __Character demonstration 02:__ [Character-orange.blend](/assets/02-character-orange.blend)
 
-
+To see how to use this addon see [this video](https://youtu.be/tz4GShhTuh8).
 
 ## Installation
 1. Download the SmartBones.py file from the [Github repository](https://github.com/sketchy-squirrel/smart-bones).
