@@ -105,7 +105,7 @@ class SmartBoneProperties(bpy.types.PropertyGroup):
 #    Operator
 #---------------------------------------------------------------------
     
-class OT_AddSmartBone(bpy.types.Operator):
+class POSE_OT_AddSmartBone(bpy.types.Operator):
     """Add action constraints to all bones in action"""
     bl_idname = "myops.add_smart_bone"
     bl_label = "Add Smart Bone"
@@ -161,10 +161,12 @@ class OT_AddSmartBone(bpy.types.Operator):
         
         bones = []
         
-        for fcurve in action.fcurves:        
-            action_bone = re.findall('"([^"]*)"', fcurve.data_path)[0]          # find bone for each key in action        
-            if action_bone not in bones:                                        # add found bone to bones if not already present
-                bones.append(action_bone)
+        for fcurve in action.fcurves:
+            fcurve_name = str(fcurve.data_path)
+            if "pose.bones" in fcurve_name:                                         # only process keyframes on pose bones, not armature or objects.
+                action_bone = re.findall('"([^"]*)"', fcurve.data_path)[0]          # find bone for each key in action        
+                if action_bone not in bones:                                        # add found bone to bones if not already present
+                    bones.append(action_bone)
         
         return(bones)
     
@@ -181,6 +183,7 @@ class OT_AddSmartBone(bpy.types.Operator):
             bones_in_current_obj = []
             for i in current_object.pose.bones:
               bones_in_current_obj.append(i.name)
+            
             
             for action_bone in action_bones:
                     
@@ -225,7 +228,7 @@ class OT_AddSmartBone(bpy.types.Operator):
                             constraint.frame_end = frame_range[1]
 
 
-class OT_DeleteSmartBone(bpy.types.Operator):
+class POSE_OT_DeleteSmartBone(bpy.types.Operator):
     """Delete relevant action constraints within selected armature"""
     
     bl_idname = "myops.delete_smart_bone"
@@ -290,7 +293,7 @@ class OT_DeleteSmartBone(bpy.types.Operator):
 
 class POSE_PT_SmartBonePanel(bpy.types.Panel):
     bl_label = "Smart Bone Panel"
-    bl_idname = "SmartBonePanel"
+    bl_idname = "POSE_PT_SmartBonePanel"
     bl_space_type = "VIEW_3D"   
     bl_region_type = "UI"
     bl_category = "Smart Bones"
@@ -301,6 +304,7 @@ class POSE_PT_SmartBonePanel(bpy.types.Panel):
         scene = context.scene
         smart_bone_tool = scene.smart_bone_tool
         
+        invalidInput = False
         
         #properties
         
@@ -317,6 +321,7 @@ class POSE_PT_SmartBonePanel(bpy.types.Panel):
                 tgt_bone = context.scene.smart_bone_tool.control_name
             else:
                 row.label(text = "Object Type = " + tgt_object.type, icon = "ERROR")
+                invalidInput = True
         else:
             row.row().label(text="No selected Object", icon = "ERROR")
         
@@ -349,9 +354,11 @@ class POSE_PT_SmartBonePanel(bpy.types.Panel):
         row.prop(smart_bone_tool, "frame_max", text="max")
         
         #operator
+        
         if (smart_bone_tool.armature_name != "" 
         and smart_bone_tool.control_name != "" 
-        and smart_bone_tool.action_name != "") :
+        and smart_bone_tool.action_name != ""
+        and not invalidInput):
             
             layout.row()
             layout.row().label(text = 'Operators')
@@ -374,8 +381,8 @@ class POSE_PT_SmartBonePanel(bpy.types.Panel):
 
 blender_classes = [
     SmartBoneProperties,
-    OT_AddSmartBone,
-    OT_DeleteSmartBone,
+    POSE_OT_AddSmartBone,
+    POSE_OT_DeleteSmartBone,
     POSE_PT_SmartBonePanel
 ]
 
