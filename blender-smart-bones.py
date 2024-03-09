@@ -1,3 +1,4 @@
+#This version is updated to use Bone Collections instead of Bone Layers, 
 bl_info = {
     "name": "Smart Bones",
     "description": "Automating adds action constraint to keyed bones within a selected action",
