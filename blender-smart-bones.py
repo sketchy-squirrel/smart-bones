@@ -3,7 +3,7 @@ bl_info = {
     "description": "Automating adds action constraint to keyed bones within a selected action",
     "author": "Sketchy Squirrel",
     "version": (0, 2, 0),
-    "blender": (4, 0, 2),
+    "blender": (4, 0, 0),
     "location": "3D View > Smart Bones",
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "https://github.com/sketchy-squirrel/smart-bones",
