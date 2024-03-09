@@ -2,8 +2,8 @@ bl_info = {
     "name": "Smart Bones",
     "description": "Automating adds action constraint to keyed bones within a selected action",
     "author": "Sketchy Squirrel",
-    "version": (0, 1, 2),
-    "blender": (2, 80, 0),
+    "version": (0, 2, 0),
+    "blender": (4, 0, 0),
     "location": "3D View > Smart Bones",
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "https://github.com/sketchy-squirrel/smart-bones",
@@ -127,10 +127,6 @@ class POSE_OT_AddSmartBone(bpy.types.Operator):
         obj = context.scene.objects[smart_bone_tool.armature_name]
         if obj.type == "ARMATURE":
             armature_data = obj.data
-            
-            for i in range(0,32):
-                current_selection.append(armature_data.layers[i])
-                armature_data.layers[i] = True
         
         
         #Add final constraints
@@ -147,12 +143,6 @@ class POSE_OT_AddSmartBone(bpy.types.Operator):
             smart_bone_tool.action_name,
             [smart_bone_tool.frame_min, smart_bone_tool.frame_max],
         )
-        
-        #revert to previous selection
-        if obj.type == "ARMATURE":
-            armature_data = obj.data
-            
-            armature_data.layers = current_selection
 
 
         return ({'FINISHED'})
@@ -262,9 +252,6 @@ class POSE_OT_DeleteSmartBone(bpy.types.Operator):
             if obj.type == "ARMATURE":
                 armature_data = obj.data
                 
-                for i in range(0,32):
-                    current_selection.append(armature_data.layers[i])
-                    armature_data.layers[i] = True
                     
             
             for bone in current_armature.data.edit_bones:
@@ -275,13 +262,6 @@ class POSE_OT_DeleteSmartBone(bpy.types.Operator):
                 for constraint in bone.constraints:
                     if constraint_name in constraint.name:
                         bone.constraints.remove(constraint)
-            
-            #revert to previous selection
-            if obj.type == "ARMATURE":
-                armature_data = obj.data
-                
-                for i in range(0,32):
-                    armature_data.layers[i] = current_selection[i]
             
             bpy.ops.object.mode_set(mode='POSE')
             
