@@ -2,8 +2,8 @@ bl_info = {
     "name": "Smart Bones",
     "description": "Automating adds action constraint to keyed bones within a selected action",
     "author": "Sketchy Squirrel",
-    "version": (0, 2, 0),
-    "blender": (4, 0, 0),
+    "version": (0, 3, 0),
+    "blender": (5, 0, 0),
     "location": "3D View > Smart Bones",
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "https://github.com/sketchy-squirrel/smart-bones",
@@ -11,6 +11,8 @@ bl_info = {
 }
 
 import bpy
+import bpy_extras
+from bpy_extras import anim_utils
 import re
 
 #---------------------------------------------------------------------
@@ -18,17 +20,17 @@ import re
 #---------------------------------------------------------------------
 
 class SmartBoneProperties(bpy.types.PropertyGroup):
-    
+
     armature_name : bpy.props.StringProperty(
         name = "Target",
         description = "Control Armature",
     )
-    
+
     control_name : bpy.props.StringProperty(
         name = "Control",
         description = "Control Bone",
     )
-    
+
     transform_channel : bpy.props.EnumProperty(
         name = "Channel",
         description = "Control Axis",
@@ -41,11 +43,11 @@ class SmartBoneProperties(bpy.types.PropertyGroup):
                 ('ROTATION_Z', 'ROTATION_Z',""),
                 ('SCALE_X', 'SCALE_X',""),
                 ('SCALE_Y', 'SCALE_Y',""),
-                ('SCALE_Z', 'SCALE_Z',""),   
+                ('SCALE_Z', 'SCALE_Z',""),
             ],
         default = 'LOCATION_X'
     )
-    
+
     target_space : bpy.props.EnumProperty(
         name = "Space",
         description = "Transform Space",
@@ -55,46 +57,46 @@ class SmartBoneProperties(bpy.types.PropertyGroup):
             ('LOCAL', 'LOCAL', "")
         ],
         default = 'LOCAL'
-            
+
     )
-    
+
     space_object_name : bpy.props.StringProperty(
         name = "Space Object",
         description = "Takes local space from another object, to apply to constraint",
         default = "",
     )
-    
+
     space_subtarget : bpy.props.StringProperty(
         name = "Space Subtarget",
         description = "Custom space target, if 'Space Object' is of type ARMATURE",
         default = "",
     )
-    
+
     transform_min : bpy.props.FloatProperty(
     name = "Min Transform Range",
     description = "Minimum Transform Value",
     default = 0.0,
     )
-    
+
     transform_max : bpy.props.FloatProperty(
     name = "Max Transform Range",
     description = "Maximum Transform Value",
     default = 1.0,
     )
-    
+
     #action
-    
+
     action_name : bpy.props.StringProperty(
     name = "Action",
     description = "Name of affected action",
     )
-    
+
     frame_min : bpy.props.IntProperty(
     name = "Min Frame",
     description = "Start Frame of Action",
     default = 0,
     )
-    
+
     frame_max : bpy.props.IntProperty(
     name = "Max Frame",
     description = "End Frame of Action",
@@ -104,31 +106,31 @@ class SmartBoneProperties(bpy.types.PropertyGroup):
 #---------------------------------------------------------------------
 #    Operator
 #---------------------------------------------------------------------
-    
+
 class POSE_OT_AddSmartBone(bpy.types.Operator):
     """Add action constraints to all bones in action"""
     bl_idname = "myops.add_smart_bone"
     bl_label = "Add Smart Bone"
-    
-    
+
+
     def execute(self, context):
-        
+
         current_object = bpy.context.object
-        
+
         smart_bone_tool = context.scene.smart_bone_tool
-        
+
         #Find Action Bones
         action = bpy.data.actions[smart_bone_tool.action_name]
         action_bones = self.find_action_bones(action)
-        
-            
+
+
         #make all bone layers visible
         current_selection = []
         obj = context.scene.objects[smart_bone_tool.armature_name]
         if obj.type == "ARMATURE":
             armature_data = obj.data
-        
-        
+
+
         #Add final constraints
         self.add_action_constraint(
             current_object,
@@ -146,71 +148,86 @@ class POSE_OT_AddSmartBone(bpy.types.Operator):
 
 
         return ({'FINISHED'})
-    
+
     def find_action_bones(self, action):                                        # create a list of bones used in the action in armature
-        
+
         bones = []
         
-        for fcurve in action.fcurves:
-            fcurve_name = str(fcurve.data_path)
-            if "pose.bones" in fcurve_name:                                         # only process keyframes on pose bones, not armature or objects.
-                action_bone = re.findall('"([^"]*)"', fcurve.data_path)[0]          # find bone for each key in action        
-                if action_bone not in bones:                                        # add found bone to bones if not already present
-                    bones.append(action_bone)
+        for layer in action.layers:
+            for strip in layer.strips:
+                for channelbag in strip.channelbags:
+                    for fcurve in channelbag.fcurves:
+
+                        fcurve_name = fcurve.data_path
+
+                        if "pose.bones" in fcurve_name:
+                            action_bone = re.findall(r'"([^"]*)"', fcurve.data_path)[0]
+
+                            if action_bone not in bones:
+                                bones.append(action_bone)
         
+        #channelbag = bpy_extras.anim_utils.action_get_channelbag_for_slot(action, 0)
+
+        #for fcurve in action.channelbag.fcurves:
+        #    fcurve_name = str(fcurve.data_path)
+        #    if "pose.bones" in fcurve_name:                                         # only process keyframes on pose bones, not armature or objects.
+        #        action_bone = re.findall('"([^"]*)"', fcurve.data_path)[0]          # find bone for each key in action
+        #        if action_bone not in bones:                                        # add found bone to bones if not already present
+        #            bones.append(action_bone)
+
         return(bones)
-    
-    
+
+
     def add_action_constraint(self, current_object, ctrl_armature_name, action_bones, control_name, transform_channel, target_space, space_obj, space_sub, transform_range, action_name, frame_range):
-        
-        
+
+
         if current_object.type == 'ARMATURE':
-            
+
             #enter pose mode
             bpy.ops.object.mode_set(mode='POSE')
-        
+
             #stores list of bones as string, to check if affected bone is in current object
             bones_in_current_obj = []
             for i in current_object.pose.bones:
               bones_in_current_obj.append(i.name)
-            
-            
+
+
             for action_bone in action_bones:
-                    
+
                     #Prevents trying to add constraint to bone in another armature
                     if action_bone in bones_in_current_obj:
-                    
+
                         current_bone = current_object.pose.bones[action_bone]
-                    
+
                         if bpy.data.objects[ctrl_armature_name].pose.bones[control_name] != current_bone: #prevents adding a constraint to a bone, targeting its self
-                    
+
                             constraint_name = str("SB_"+control_name+"_"+action_name)
-                            
+
                             constraint_exists = False
                             # Test if bone constraint already exists
                             for constraint in current_bone.constraints:
                                 if constraint.name == constraint_name:
                                     constraint_exists = True
-                            
+
                             if constraint_exists == False:
                                 constraint = current_bone.constraints.new("ACTION")
                                 constraint.name = constraint_name
-                            
+
                             constraint.target = bpy.data.objects[ctrl_armature_name]
                             constraint.subtarget = control_name
                             constraint.transform_channel = transform_channel
                             constraint.target_space = target_space
-                            
+
                             if target_space == "CUSTOM":
                                 try:
                                     constraint.space_object = bpy.data.objects[space_obj]
-                                    
+
                                     if space_obj != "" and bpy.context.objects[space_obj].type == "ARMATURE":
                                         constraint.space_subtarget = space_sub
-                                        
+
                                 except:
                                     constraint.target_space = "LOCAL"
-                                    
+
                             constraint.min = transform_range[0]
                             constraint.max = transform_range[1]
                             constraint.action = bpy.data.actions[action_name]
@@ -220,51 +237,51 @@ class POSE_OT_AddSmartBone(bpy.types.Operator):
 
 class POSE_OT_DeleteSmartBone(bpy.types.Operator):
     """Delete relevant action constraints within selected armature"""
-    
+
     bl_idname = "myops.delete_smart_bone"
     bl_label = "Delete Smart Bone"
-    
-    
+
+
     def execute(self, context):
-        
+
         current_armature = bpy.context.object
-        
+
         if current_armature.type == "ARMATURE":
-            
+
             smart_bone_tool = context.scene.smart_bone_tool
-            
+
             armature_name = smart_bone_tool.armature_name
             control_name = smart_bone_tool.control_name
             action_name = smart_bone_tool.action_name
-            
+
             constraint_name = str("SB_"+control_name+"_"+action_name)
-            
+
             bpy.ops.object.mode_set(mode='POSE')
-        
+
             #select all the bones in armature
-                
+
             bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.armature.select_all(action='DESELECT')
-            
+
             #make all bone layers visible
             current_selection = []
             obj = context.scene.objects[smart_bone_tool.armature_name]
             if obj.type == "ARMATURE":
                 armature_data = obj.data
-                
-                    
-            
+
+
+
             for bone in current_armature.data.edit_bones:
                 bone.select = True
-            
+
             #remove_constraints
             for bone in current_armature.pose.bones:
                 for constraint in bone.constraints:
                     if constraint_name in constraint.name:
                         bone.constraints.remove(constraint)
-            
+
             bpy.ops.object.mode_set(mode='POSE')
-            
+
             return {'FINISHED'}
 
 #---------------------------------------------------------------------
@@ -274,25 +291,25 @@ class POSE_OT_DeleteSmartBone(bpy.types.Operator):
 class POSE_PT_SmartBonePanel(bpy.types.Panel):
     bl_label = "Smart Bone Panel"
     bl_idname = "POSE_PT_SmartBonePanel"
-    bl_space_type = "VIEW_3D"   
+    bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Smart Bones"
-    #bl_context = "posemode"   
+    #bl_context = "posemode"
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         smart_bone_tool = scene.smart_bone_tool
-        
+
         invalidInput = False
-        
+
         #properties
-        
+
         row = layout.row()
-        
+
         row = layout.row()
         row.prop_search(smart_bone_tool, "armature_name", bpy.context.scene, "objects")
-        
+
         row = layout.row()
         if context.scene.smart_bone_tool.armature_name != "":
             tgt_object = context.scene.objects[smart_bone_tool.armature_name]
@@ -304,16 +321,16 @@ class POSE_PT_SmartBonePanel(bpy.types.Panel):
                 invalidInput = True
         else:
             row.row().label(text="No selected Object", icon = "ERROR")
-        
+
         row = layout.row()
         row.prop(smart_bone_tool, "transform_channel")
         row = layout.row()
         row.prop(smart_bone_tool, "target_space")
-        
+
         row = layout.row()
         if smart_bone_tool.target_space == "CUSTOM":
             row.prop_search(smart_bone_tool, "space_object_name", context.scene, "objects")
-            
+
             space_object = bpy.data.objects[smart_bone_tool.space_object_name]
             if space_object.type == "ARMATURE":
                 row = layout.row()
@@ -324,7 +341,7 @@ class POSE_PT_SmartBonePanel(bpy.types.Panel):
         row = layout.row()
         row.prop(smart_bone_tool, "transform_min", text="min")
         row.prop(smart_bone_tool, "transform_max", text="max")
-        
+
         row = layout.row()
         layout.prop_search(smart_bone_tool, "action_name", bpy.data, "actions")
         row = layout.row()
@@ -332,20 +349,20 @@ class POSE_PT_SmartBonePanel(bpy.types.Panel):
         row = layout.row()
         row.prop(smart_bone_tool, "frame_min", text="min")
         row.prop(smart_bone_tool, "frame_max", text="max")
-        
+
         #operator
-        
-        if (smart_bone_tool.armature_name != "" 
-        and smart_bone_tool.control_name != "" 
+
+        if (smart_bone_tool.armature_name != ""
+        and smart_bone_tool.control_name != ""
         and smart_bone_tool.action_name != ""
         and not invalidInput):
-            
+
             layout.row()
             layout.row().label(text = 'Operators')
             layout.operator("myops.add_smart_bone")
             layout.row()
             layout.operator("myops.delete_smart_bone")
-            
+
             layout.separator()
         else:
             layout.row()
@@ -369,9 +386,9 @@ blender_classes = [
 def register():
     for blender_class in blender_classes:
         bpy.utils.register_class(blender_class)
-    
+
     bpy.types.Scene.smart_bone_tool = bpy.props.PointerProperty(type=SmartBoneProperties)
-    
+
 def unregister():
     for blender_class in blender_classes:
         bpy.utils.unregister_class(blender_class)
@@ -381,6 +398,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
-
-
