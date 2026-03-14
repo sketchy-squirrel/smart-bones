@@ -47,6 +47,7 @@ To see how to use this addon see [this video](https://youtu.be/tz4GShhTuh8).
 
 ## Compatibility
 The add-on is compatible with Blender 2.80 and newer versions.
+I recently updated the addon to be compatible with 5.0 and newer.
 
 ## Credits
 [Sketchy Squirrel](https://sketchysquirrel.com) - Joel Graham
